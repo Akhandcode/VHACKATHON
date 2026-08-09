@@ -101,27 +101,26 @@ export default function LandingPage() {
           </motion.div>
         </div>
 
-        {/* Hero Swiss Poster Card with Generated Texture Asset */}
+        {/* Interactive 3D Canvas Guidance Overlay */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="lg:col-span-5 relative glass-panel border-4 border-swiss-black p-4 shadow-y2k overflow-hidden rounded-none"
+          className="lg:col-span-5 relative glass-panel border-4 border-swiss-black p-6 shadow-y2k overflow-hidden rounded-none pointer-events-none"
         >
-          <div className="relative w-full h-80 lg:h-96 border-2 border-swiss-black overflow-hidden bg-swiss-black">
-            <Image
-              src="/agent_imagination_hero.png"
-              alt="Autonomous AI Agent Neural Engine Poster"
-              fill
-              className="object-cover opacity-95 hover:scale-105 transition-transform duration-700"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-swiss-black via-transparent to-transparent opacity-80" />
-            
-            <div className="absolute bottom-4 left-4 right-4 font-mono text-xs text-swiss-offwhite space-y-1">
-              <div className="text-y2k-cyan font-bold uppercase tracking-widest">// AUTONOMOUS AGENT ARCHITECTURE</div>
-              <div className="text-xs font-body text-swiss-offwhite/90">
-                FASTAPI + SUPABASE PGVECTOR + REACT THREE FIBER SNOW THEME
-              </div>
+          <div className="space-y-4 font-mono text-xs text-swiss-black">
+            <div className="text-y2k-magenta font-bold uppercase tracking-widest flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-y2k-cyan animate-pulse" />
+              // 3D INTERACTIVE POSTER MESH
+            </div>
+            <p className="font-body text-sm leading-relaxed text-swiss-black/90">
+              The 3D poster object behind this HUD dynamically tracks your cursor in real-time. Move your cursor across the screen or click and drag to tilt and orbit the 3D mesh in WebGL space.
+            </p>
+
+            <div className="p-3 bg-swiss-black text-swiss-offwhite border border-swiss-black space-y-1">
+              <div className="text-y2k-cyan font-bold uppercase">// MOUSE CONTROLS:</div>
+              <div>• CURSOR SWAY: REALTIME 3D PARALLAX TILT</div>
+              <div>• CLICK & DRAG: FULL 3D MESH ROTATION</div>
             </div>
           </div>
         </motion.div>
