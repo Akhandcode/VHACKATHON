@@ -85,7 +85,7 @@ graph TD
         AgentTable[("agent_state Table")]
         PostsTable[("posts Table (pgvector 1536-dim)")]
         RejectedTable[("rejected_topics Audit Log")]
-        PgVector["match_posts() Cosine Similarity"]
+        PgVector["match_posts Cosine Similarity"]
     end
 
     subgraph Queue ["Trigger / Scheduler"]
@@ -95,7 +95,7 @@ graph TD
     %% Client Interactions
     UI --> InitRoute
     UI --> FeedRoute
-    CDC <-->|WebSocket Stream| PostsTable
+    PostsTable -->|WebSocket CDC Event| CDC
     CDC --> R3F
     R3F --> Audit
 
@@ -108,9 +108,9 @@ graph TD
     WorkerRoute --> Scraper
     Scraper --> Embedder
     Embedder --> PgVector
-    PgVector -->|Check Duplicates (Sim > 0.82)| Gatekeeper
-    Gatekeeper -->|Passed Score > 0.70| Synthesizer
-    Gatekeeper -->|Failed| RejectedTable
+    PgVector -->|Vector Deduplication Check| Gatekeeper
+    Gatekeeper -->|Passed Editorial Gate| Synthesizer
+    Gatekeeper -->|Rejected Topic| RejectedTable
     Synthesizer --> PostsTable
 ```
 
@@ -136,18 +136,18 @@ sequenceDiagram
     loop For Each Candidate Topic
         Worker->>OpenAI: Generate 1536-dim Embedding (text-embedding-3-small)
         OpenAI-->>Worker: Return Embedding Vector
-        Worker->>DB: Execute match_posts(vector, threshold=0.82)
+        Worker->>DB: Execute match_posts (vector threshold check)
         DB-->>Worker: Return Cosine Similarity Matches (Past 48h)
         
-        alt Topic is Duplicate (Similarity > 0.82)
+        alt Topic is Duplicate (Similarity Exceeds Threshold)
             Worker->>DB: Log to rejected_topics (Reason: Vector Duplicate)
         else Topic is Unique
             Worker->>OpenAI: Stage 1 Gatekeeper Score (Novelty, Relevance, Persona)
             OpenAI-->>Worker: Score Matrix Result
             
-            alt Score < 0.70
+            alt Editorial Score Low
                 Worker->>DB: Log to rejected_topics (Reason: Low Editorial Score)
-            else Score >= 0.70
+            else Editorial Score Passed
                 Worker->>OpenAI: Stage 2 Draft Post & Rationale (GPT-4o)
                 OpenAI-->>Worker: Post Text + Rationale + Verified Sources
                 Worker->>DB: INSERT into posts table
