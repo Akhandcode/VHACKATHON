@@ -301,7 +301,7 @@ In a separate terminal, launch the FastAPI server:
 uvicorn api.index:app --reload --port 8000
 ```
 
-Access the WebGL Dashboard at `http://localhost:3000`.
+Access the WebGL Dashboard in your browser.
 
 ---
 
