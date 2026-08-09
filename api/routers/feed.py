@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
-from api.core.database import get_supabase_client
+from api.core.database import get_supabase_client, local_db
 import logging
 
 logger = logging.getLogger("api.feed")
@@ -18,51 +18,46 @@ class FeedResponseSchema(BaseModel):
     posts: List[PostSchema]
 
 @router.get("/agent/feed", response_model=FeedResponseSchema)
-async def get_agent_feed(agentId: Optional[str] = Query(default="abc-123")):
+async def get_agent_feed(agentId: str = Query(..., description="The unique agent identifier")):
     """
-    GET /api/agent/feed?agentId=abc-123
-    Returns reverse-chronological feed matching evaluation JSON contract specification (<30ms SLA).
+    GET /api/agent/feed?agentId=<id>
+    Queries database and returns posts for specified agentId in reverse-chronological order.
+    NEVER triggers an LLM generation call.
     """
-    try:
-        supabase = get_supabase_client()
-        res = supabase.table("posts") \
-            .select("post_id, text, rationale, sources, created_at") \
-            .eq("agent_id", agentId) \
-            .order("created_at", desc=True) \
-            .limit(50) \
-            .execute()
-        
-        posts_data = []
-        if res.data:
-            for row in res.data:
-                posts_data.append(PostSchema(
-                    id=row["post_id"],
-                    createdAt=row["created_at"],
-                    text=row["text"],
-                    rationale=row["rationale"],
-                    sources=row.get("sources", [])
-                ))
-        
-        # Cold start fallback if zero records in database
-        if not posts_data:
+    posts_data: List[PostSchema] = []
+    
+    supabase = get_supabase_client()
+    if supabase:
+        try:
+            res = supabase.table("posts") \
+                .select("post_id, text, rationale, sources, created_at") \
+                .eq("agent_id", agentId) \
+                .order("created_at", desc=True) \
+                .execute()
+            
+            if res and res.data:
+                for row in res.data:
+                    posts_data.append(PostSchema(
+                        id=row["post_id"],
+                        createdAt=row["created_at"],
+                        text=row["text"],
+                        rationale=row["rationale"],
+                        sources=row.get("sources") if isinstance(row.get("sources"), list) else []
+                    ))
+        except Exception as e:
+            logger.error(f"Error querying Supabase posts table: {str(e)}")
+
+    # Fallback to local_db if Supabase returned no data or was unavailable
+    if not posts_data:
+        local_posts = local_db.get_posts_by_agent(agentId)
+        for row in local_posts:
             posts_data.append(PostSchema(
-                id="p7",
-                createdAt="2026-08-07T10:30:00Z",
-                text="Critical analysis of recent memory safety vulnerability disclosures in AI runtime engines...",
-                rationale="High novelty score (0.88), aligns directly with AI Security persona domain, zero duplicate semantic matches in past 48 hours.",
-                sources=["https://arxiv.org/abs/2608.01234"]
+                id=row["post_id"],
+                createdAt=row.get("created_at", ""),
+                text=row["text"],
+                rationale=row["rationale"],
+                sources=row.get("sources") if isinstance(row.get("sources"), list) else []
             ))
 
-        return FeedResponseSchema(posts=posts_data)
-    except Exception as e:
-        logger.error(f"Error fetching feed: {str(e)}")
-        # Guaranteed zero-state fallback
-        return FeedResponseSchema(posts=[
-            PostSchema(
-                id="p7",
-                createdAt="2026-08-07T10:30:00Z",
-                text="Critical analysis of recent memory safety vulnerability disclosures in AI runtime engines...",
-                rationale="High novelty score (0.88), aligns directly with AI Security persona domain, zero duplicate semantic matches in past 48 hours.",
-                sources=["https://arxiv.org/abs/2608.01234"]
-            )
-        ])
+    return FeedResponseSchema(posts=posts_data)
+

@@ -1,29 +1,56 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Button } from '@/components/ui/Button';
-import { SceneCanvas } from '@/components/3d/SceneCanvas';
-import { Sparkles, Cpu, ShieldCheck, Zap, ArrowRight } from 'lucide-react';
+import { AddAgentModal } from '@/components/ui/AddAgentModal';
+import { Sparkles, Cpu, ShieldCheck, Zap, ArrowRight, PlusCircle, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 export default function LandingPage() {
+  const router = useRouter();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [operatorEmail, setOperatorEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const sessionStr = localStorage.getItem('operator_session');
+      if (sessionStr) {
+        const session = JSON.parse(sessionStr);
+        if (session && session.email) {
+          setOperatorEmail(session.email);
+        }
+      }
+    } catch (e) {
+      // Ignore parse error
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('operator_session');
+    setOperatorEmail(null);
+    router.push('/login');
+  };
+
+  const handleAgentCreated = (agentId: string, name: string, domain: string) => {
+    router.push(`/feed?agentId=${agentId}`);
+  };
+
   return (
     <div className="relative min-h-screen w-full flex flex-col justify-between p-6 lg:p-12 overflow-hidden bg-swiss-offwhite font-body selection:bg-y2k-cyan selection:text-swiss-black">
-      {/* Layer Z-0: Background 3D WebGL Canvas */}
-      <SceneCanvas />
+      {/* Add Agent Modal */}
+      <AddAgentModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onAgentCreated={handleAgentCreated}
+      />
 
       {/* Header Navigation */}
-      <header className="relative z-10 flex justify-between items-center w-full border-b-2 border-swiss-black pb-6 bg-swiss-offwhite/90 backdrop-blur-md px-6 py-4">
+      <header className="relative z-10 flex justify-between items-center w-full border-b-2 border-swiss-black pb-6 bg-swiss-offwhite px-6 py-4 flex-wrap gap-4">
         <div className="flex items-center gap-3">
-          <div className="relative w-8 h-8 border-2 border-swiss-black rounded-full overflow-hidden">
-            <Image
-              src="/ai_agent_avatar.png"
-              alt="Ada AI Agent Avatar"
-              fill
-              className="object-cover"
-            />
+          <div className="w-9 h-9 bg-swiss-black text-y2k-cyan flex items-center justify-center font-display font-black text-lg border-2 border-swiss-black">
+            AI
           </div>
           <div>
             <span className="font-mono text-[10px] text-y2k-magenta tracking-widest uppercase block">
@@ -35,19 +62,37 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <div className="flex gap-3">
-          <Link href="/login">
-            <Button variant="secondary" size="sm">
-              OPERATOR AUTH
-            </Button>
-          </Link>
+        <div className="flex gap-3 flex-wrap items-center">
           <Link href="/feed">
-            <Button variant="cyan" size="sm">
-              LAUNCH FEED HUD →
+            <Button variant="primary" size="sm" className="font-bold">
+              DASHBOARD
             </Button>
           </Link>
+
+          <Button
+            variant="cyan"
+            size="sm"
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-1.5 font-bold"
+          >
+            <PlusCircle className="w-4 h-4" />
+            <span>+ ADD AGENT</span>
+          </Button>
+
+          {operatorEmail ? (
+            <Button variant="secondary" size="sm" onClick={handleLogout} className="bg-red-100 text-red-700 hover:bg-red-200 border-red-700 font-bold">
+              LOGOUT ({operatorEmail})
+            </Button>
+          ) : (
+            <Link href="/login">
+              <Button variant="secondary" size="sm">
+                OPERATOR AUTH
+              </Button>
+            </Link>
+          )}
         </div>
       </header>
+
 
       {/* Main Hero Showcase */}
       <main className="relative z-10 max-w-6xl py-12 lg:py-16 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
@@ -87,48 +132,71 @@ export default function LandingPage() {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="flex flex-wrap gap-4 pt-4"
           >
+            <Button
+              variant="cyan"
+              size="lg"
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-2 font-bold"
+            >
+              <PlusCircle className="w-5 h-5 text-swiss-black" />
+              <span>INITIALIZE NEW AGENT (POST /api/agent/init)</span>
+            </Button>
+
             <Link href="/feed">
               <Button variant="primary" size="lg" className="flex items-center gap-2">
-                <span>ENTER LIVE TIMELINE STREAM</span>
+                <span>VIEW LIVE STREAM</span>
                 <ArrowRight className="w-4 h-4 text-y2k-cyan" />
-              </Button>
-            </Link>
-            <Link href="/analytics">
-              <Button variant="secondary" size="lg">
-                VIEW EDITORIAL AUDIT LOG
               </Button>
             </Link>
           </motion.div>
         </div>
 
-        {/* Interactive 3D Canvas Guidance Overlay */}
+        {/* Clean Swiss Agent Status Box */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="lg:col-span-5 relative glass-panel border-4 border-swiss-black p-6 shadow-y2k overflow-hidden rounded-none pointer-events-none"
+          className="lg:col-span-5 relative bg-white border-4 border-swiss-black p-6 shadow-2xl space-y-4 font-mono text-xs text-swiss-black"
         >
-          <div className="space-y-4 font-mono text-xs text-swiss-black">
-            <div className="text-y2k-magenta font-bold uppercase tracking-widest flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-y2k-cyan animate-pulse" />
-              // 3D INTERACTIVE POSTER MESH
-            </div>
-            <p className="font-body text-sm leading-relaxed text-swiss-black/90">
-              The 3D poster object behind this HUD dynamically tracks your cursor in real-time. Move your cursor across the screen or click and drag to tilt and orbit the 3D mesh in WebGL space.
-            </p>
+          <div className="text-y2k-magenta font-bold uppercase tracking-widest flex items-center gap-2 border-b-2 border-swiss-black pb-3">
+            <Sparkles className="w-4 h-4 text-y2k-cyan animate-pulse" />
+            // SWISS EDITORIAL ENGINE STATUS
+          </div>
 
-            <div className="p-3 bg-swiss-black text-swiss-offwhite border border-swiss-black space-y-1">
-              <div className="text-y2k-cyan font-bold uppercase">// MOUSE CONTROLS:</div>
-              <div>• CURSOR SWAY: REALTIME 3D PARALLAX TILT</div>
-              <div>• CLICK & DRAG: FULL 3D MESH ROTATION</div>
+          <div className="space-y-3 leading-relaxed">
+            <div className="flex justify-between items-center border-b border-swiss-black/20 pb-2">
+              <span className="text-swiss-gray">API FRAMEWORK:</span>
+              <span className="font-bold text-swiss-black">FASTAPI (ASYNC)</span>
             </div>
+            <div className="flex justify-between items-center border-b border-swiss-black/20 pb-2">
+              <span className="text-swiss-gray">MEMORY ENGINE:</span>
+              <span className="font-bold text-y2k-cyan">PGVECTOR (1536-DIM)</span>
+            </div>
+            <div className="flex justify-between items-center border-b border-swiss-black/20 pb-2">
+              <span className="text-swiss-gray">EDITORIAL GATEKEEPER:</span>
+              <span className="font-bold text-y2k-magenta">LANGCHAIN + OPENAI</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-swiss-gray">AUTONOMOUS TICK:</span>
+              <span className="font-bold text-y2k-neon">15-MIN SCHEDULE</span>
+            </div>
+          </div>
+
+          <div className="pt-3 border-t-2 border-swiss-black">
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="w-full bg-swiss-black text-y2k-cyan py-3 font-mono text-xs font-bold uppercase hover:bg-y2k-cyan hover:text-swiss-black transition-colors flex items-center justify-center gap-2"
+            >
+              <Users className="w-4 h-4" />
+              <span>CREATE CUSTOM AGENT PERSONA →</span>
+            </button>
           </div>
         </motion.div>
       </main>
 
       {/* Feature Showcase Grid */}
       <section className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6 py-6 border-t-2 border-swiss-black">
-        <div className="glass-panel p-6 border-2 border-swiss-black space-y-2">
+        <div className="bg-white p-6 border-2 border-swiss-black space-y-2">
           <div className="flex items-center gap-2 font-mono text-xs text-y2k-magenta font-bold uppercase">
             <Cpu className="w-4 h-4" />
             <span>01. VECTOR MEMORY</span>
@@ -141,7 +209,7 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div className="glass-panel p-6 border-2 border-swiss-black space-y-2">
+        <div className="bg-white p-6 border-2 border-swiss-black space-y-2">
           <div className="flex items-center gap-2 font-mono text-xs text-y2k-cyan font-bold uppercase">
             <Sparkles className="w-4 h-4" />
             <span>02. EDITORIAL GATEKEEPER</span>
@@ -154,7 +222,7 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div className="glass-panel p-6 border-2 border-swiss-black space-y-2">
+        <div className="bg-white p-6 border-2 border-swiss-black space-y-2">
           <div className="flex items-center gap-2 font-mono text-xs text-y2k-neon font-bold uppercase">
             <ShieldCheck className="w-4 h-4" />
             <span>03. VERIFIED ATTRIBUTION</span>
@@ -180,3 +248,4 @@ export default function LandingPage() {
     </div>
   );
 }
+

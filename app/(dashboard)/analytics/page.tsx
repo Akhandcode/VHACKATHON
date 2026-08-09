@@ -44,10 +44,10 @@ export default function AnalyticsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen w-full p-6 lg:p-12 font-body">
-      <div className="max-w-6xl mx-auto space-y-8 pointer-events-auto">
+    <div className="min-h-screen w-full p-6 lg:p-12 font-body bg-swiss-offwhite">
+      <div className="max-w-6xl mx-auto space-y-8">
         {/* Header Navigation */}
-        <div className="flex justify-between items-center pb-6 border-b-2 border-swiss-black">
+        <div className="flex justify-between items-center pb-6 border-b-2 border-swiss-black bg-swiss-offwhite">
           <div>
             <span className="font-mono text-xs text-y2k-magenta font-bold uppercase tracking-widest block mb-1">
               // AUDITABILITY & METRICS HUD
@@ -56,59 +56,67 @@ export default function AnalyticsPage() {
               EDITORIAL AUDIT LOG
             </h1>
           </div>
-          <Link href="/feed">
-            <Button variant="cyan" size="md">
-              ← RETURN TO FEED HUD
-            </Button>
-          </Link>
+          <div className="flex gap-3">
+            <Link href="/feed">
+              <Button variant="primary" size="md">
+                DASHBOARD
+              </Button>
+            </Link>
+            <Link href="/feed">
+              <Button variant="cyan" size="md">
+                ← RETURN TO FEED HUD
+              </Button>
+            </Link>
+          </div>
         </div>
+
 
         {/* System Metric Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="glass-panel p-6 border-2 border-swiss-black">
+          <div className="bg-white p-6 border-2 border-swiss-black shadow-sm">
             <div className="font-mono text-xs text-swiss-gray uppercase mb-1">
               AVERAGE NOVELTY SCORE
             </div>
             <div className="font-display font-black text-4xl text-swiss-black">
               0.874
             </div>
-            <div className="font-mono text-[11px] text-y2k-magenta mt-2">
+            <div className="font-mono text-[11px] text-y2k-magenta mt-2 font-bold">
               THRESHOLD: ≥0.70 REQUIRED
             </div>
           </div>
 
-          <div className="glass-panel p-6 border-2 border-swiss-black">
+          <div className="bg-white p-6 border-2 border-swiss-black shadow-sm">
             <div className="font-mono text-xs text-swiss-gray uppercase mb-1">
               VECTOR DEDUPLICATION RATE
             </div>
             <div className="font-display font-black text-4xl text-swiss-black">
               98.2%
             </div>
-            <div className="font-mono text-[11px] text-y2k-cyan mt-2">
+            <div className="font-mono text-[11px] text-y2k-cyan mt-2 font-bold">
               PGVECTOR COSINE SIMILARITY ≤0.82
             </div>
           </div>
 
-          <div className="glass-panel p-6 border-2 border-swiss-black">
+          <div className="bg-white p-6 border-2 border-swiss-black shadow-sm">
             <div className="font-mono text-xs text-swiss-gray uppercase mb-1">
               UNASSISTED UPTIME
             </div>
             <div className="font-display font-black text-4xl text-swiss-black">
               48.0 hrs
             </div>
-            <div className="font-mono text-[11px] text-y2k-neon mt-2">
+            <div className="font-mono text-[11px] text-y2k-neon mt-2 font-bold">
               ZERO HUMAN INTERVENTION
             </div>
           </div>
         </div>
 
         {/* Rejected Topics Table */}
-        <div className="glass-panel border-2 border-swiss-black p-6 space-y-4">
-          <div className="flex justify-between items-center font-mono text-xs text-swiss-black border-b border-swiss-black/20 pb-3">
+        <div className="bg-white border-2 border-swiss-black p-6 space-y-4 shadow-sm">
+          <div className="flex justify-between items-center font-mono text-xs text-swiss-black border-b-2 border-swiss-black pb-3">
             <span className="font-bold uppercase text-y2k-magenta">
               // REJECTED CANDIDATE AUDIT TRAIL
             </span>
-            <span>SHOWING LAST {rejectedTopics.length} REJECTIONS</span>
+            <span className="font-bold">SHOWING LAST {rejectedTopics.length} REJECTIONS</span>
           </div>
 
           {loading ? (
@@ -124,7 +132,7 @@ export default function AnalyticsPage() {
               {rejectedTopics.map((topic) => (
                 <div
                   key={topic.id}
-                  className="p-4 bg-white/80 border border-swiss-black font-mono text-xs space-y-2"
+                  className="p-4 bg-swiss-offwhite border border-swiss-black font-mono text-xs space-y-2"
                 >
                   <div className="flex justify-between items-center">
                     <span className="font-bold text-swiss-black uppercase">
@@ -154,3 +162,4 @@ export default function AnalyticsPage() {
     </div>
   );
 }
+

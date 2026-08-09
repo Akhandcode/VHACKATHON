@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from typing import Optional
 from api.core.security import verify_qstash_signature
-from api.core.database import get_supabase_client
+from api.core.database import get_supabase_client, local_db
 from api.services.scraper import ingest_live_candidate_topics
 from api.services.vector_store import is_duplicate_topic
 from api.services.editorial import evaluate_candidate_topic
@@ -24,25 +24,49 @@ class WorkerTickResponse(BaseModel):
 async def execute_autonomous_worker_tick(agentId: str = "abc-123"):
     """
     POST /api/worker/tick
-    Autonomous background queue worker execution:
-    1. Scrapes live tech feeds (ArXiv, HackerNews, RSS)
-    2. Generates OpenAI embeddings and checks pgvector similarity
-    3. Runs two-stage LLM Editorial Gatekeeper scoring
-    4. Synthesizes post + rationale + sources and commits to Supabase
+    Autonomous background queue worker execution pipeline:
+    1. Scrapes live tech feeds (ArXiv, HackerNews)
+    2. Generates OpenAI embeddings and checks pgvector similarity against past 48h
+    3. Runs LLM Editorial Gatekeeper scoring matrix
+    4. Synthesizes post + rationale + sources and commits to database
     """
     logger.info(f"Initiating autonomous worker tick for agent {agentId}...")
     
-    # 1. Fetch Agent Persona from Supabase state
+    # 1. Fetch Agent Persona from Supabase or local_db state, or register if missing
     name = "Ada"
     domain = "AI Security"
-    try:
-        supabase = get_supabase_client()
-        agent_res = supabase.table("agent_state").select("name, domain").eq("agent_id", agentId).execute()
-        if agent_res.data and len(agent_res.data) > 0:
-            name = agent_res.data[0]["name"]
-            domain = agent_res.data[0]["domain"]
-    except Exception as e:
-        logger.warning(f"Using default persona Ada/AI Security: {str(e)}")
+    if agentId == "agent_cyber":
+        name = "Cipher"
+        domain = "Cryptography"
+    elif agentId == "agent_quantum":
+        name = "Turing"
+        domain = "Autonomous Systems"
+
+    supabase = get_supabase_client()
+    if supabase:
+        try:
+            agent_res = supabase.table("agent_state").select("name, domain").eq("agent_id", agentId).execute()
+            if agent_res.data and len(agent_res.data) > 0:
+                name = agent_res.data[0]["name"]
+                domain = agent_res.data[0]["domain"]
+            else:
+                # Insert agent into agent_state to satisfy foreign key constraint
+                supabase.table("agent_state").insert({
+                    "agent_id": agentId,
+                    "name": name,
+                    "domain": domain,
+                    "status": "ACTIVE"
+                }).execute()
+        except Exception as e:
+            logger.warning(f"Could not fetch/register agent persona in Supabase: {str(e)}")
+            
+    local_agent = local_db.get_agent(agentId)
+    if local_agent:
+        name = local_agent.get("name", name)
+        domain = local_agent.get("domain", domain)
+    else:
+        local_db.insert_agent(agent_id=agentId, name=name, domain=domain)
+
 
     # 2. Ingest candidate topics
     candidates = await ingest_live_candidate_topics(domain=domain)
@@ -57,7 +81,7 @@ async def execute_autonomous_worker_tick(agentId: str = "abc-123"):
             rejected_count += 1
             continue
 
-        # 4. Two-Stage LLM Editorial Scoring Matrix
+        # 4. LLM Editorial Scoring Matrix
         eval_res = await evaluate_candidate_topic(
             agent_id=agentId,
             domain=domain,
@@ -97,3 +121,4 @@ async def execute_autonomous_worker_tick(agentId: str = "abc-123"):
         rejectedCount=rejected_count,
         message="All candidate topics were filtered out by vector deduplication or editorial scoring."
     )
+

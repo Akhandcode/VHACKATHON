@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from openai import OpenAI
 from api.core.config import settings
-from api.core.database import get_supabase_client
+from api.core.database import get_supabase_client, local_db
 import logging
 import json
 
@@ -21,7 +21,7 @@ async def evaluate_candidate_topic(agent_id: str, domain: str, topic_title: str,
     """
     if not settings.OPENAI_API_KEY:
         logger.warning("OPENAI_API_KEY missing; using heuristic editorial pass.")
-        return EditorialEvaluation(
+        eval_res = EditorialEvaluation(
             novelty_score=0.85,
             relevance_score=0.90,
             persona_alignment_score=0.88,
@@ -29,10 +29,19 @@ async def evaluate_candidate_topic(agent_id: str, domain: str, topic_title: str,
             passed=True,
             rationale=f"Heuristic editorial validation pass for {domain} persona domain."
         )
+        return eval_res
 
     try:
-        client = OpenAI(api_key=settings.OPENAI_API_KEY)
-        prompt = f"""
+        try:
+            from langchain_openai import ChatOpenAI
+            from langchain_core.prompts import ChatPromptTemplate
+
+            llm = ChatOpenAI(
+                model=settings.OPENAI_LLM_MODEL,
+                api_key=settings.OPENAI_API_KEY,
+                temperature=0.2
+            )
+            prompt = ChatPromptTemplate.from_template("""
 You are the Lead Editorial Gatekeeper for an autonomous AI creator operating in the domain: '{domain}'.
 Evaluate the following candidate topic:
 Title: {topic_title}
@@ -52,13 +61,31 @@ Respond strictly in JSON format matching the schema:
   "passed": boolean,
   "rationale": "string"
 }}
+""")
+            chain = prompt | llm
+            res = chain.invoke({
+                "domain": domain,
+                "topic_title": topic_title,
+                "topic_summary": topic_summary
+            })
+            content = res.content
+        except Exception:
+            client = OpenAI(api_key=settings.OPENAI_API_KEY)
+            prompt_str = f"""
+You are the Lead Editorial Gatekeeper for an autonomous AI creator operating in the domain: '{domain}'.
+Evaluate the following candidate topic:
+Title: {topic_title}
+Summary: {topic_summary}
+
+Respond strictly in JSON format.
 """
-        response = client.chat.completions.create(
-            model=settings.OPENAI_LLM_MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            response_format={"type": "json_object"}
-        )
-        content = response.choices[0].message.content
+            response = client.chat.completions.create(
+                model=settings.OPENAI_LLM_MODEL,
+                messages=[{"role": "user", "content": prompt_str}],
+                response_format={"type": "json_object"}
+            )
+            content = response.choices[0].message.content
+
         data = json.loads(content)
         eval_res = EditorialEvaluation(**data)
         
@@ -88,16 +115,21 @@ Respond strictly in JSON format matching the schema:
 
 def log_rejected_topic(agent_id: str, topic_title: str, rejection_reason: str, score_matrix: dict):
     """
-    Persists rejected topic records in Supabase for auditability.
+    Persists rejected topic records in Supabase and local_db for auditability.
     """
+    record = {
+        "agent_id": agent_id,
+        "topic_title": topic_title,
+        "rejection_reason": rejection_reason,
+        "score_matrix": score_matrix
+    }
     try:
         supabase = get_supabase_client()
         if supabase:
-            supabase.table("rejected_topics").insert({
-                "agent_id": agent_id,
-                "topic_title": topic_title,
-                "rejection_reason": rejection_reason,
-                "score_matrix": score_matrix
-            }).execute()
+            supabase.table("rejected_topics").insert(record).execute()
+        else:
+            local_db.insert_rejected_topic(record)
     except Exception as e:
         logger.error(f"Failed to log rejected topic: {str(e)}")
+        local_db.insert_rejected_topic(record)
+
