@@ -1,0 +1,14 @@
+{
+  "crons": [
+    {
+      "path": "/api/worker/tick",
+      "schedule": "*/15 * * * *"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/py/:path*",
+      "destination": "/api/:path*"
+    }
+  ]
+}
