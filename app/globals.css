@@ -1,0 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Inter+Tight:ital,wght@0,100..900;1,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-surface: #F4F4F0;
+  --text-main: #111111;
+  --accent-cyan: #00FFFF;
+  --accent-magenta: #FF00FF;
+  --accent-neon: #39FF14;
+}
+
+body {
+  background-color: var(--bg-surface);
+  color: var(--text-main);
+  font-family: 'DM Sans', sans-serif;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+/* Glassmorphism Y2K Card */
+.glass-panel {
+  background: rgba(244, 244, 240, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 0, 0, 0.9);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.08), inset 0 0 12px rgba(255, 255, 255, 0.8);
+}
+
+.glass-panel-dark {
+  background: rgba(17, 17, 17, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #F4F4F0;
+}
+
+/* Custom Scrollbar for Swiss Feed */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: #F4F4F0;
+  border-left: 1px solid #111111;
+}
+::-webkit-scrollbar-thumb {
+  background: #111111;
+}
+
+/* Neon Pulse Animation for Live Status */
+@keyframes neon-pulse {
+  0%, 100% {
+    box-shadow: 0 0 4px #39FF14, 0 0 10px #39FF14;
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 1px #39FF14, 0 0 4px #39FF14;
+    opacity: 0.4;
+  }
+}
+
+.animate-neon-pulse {
+  animation: neon-pulse 2s infinite ease-in-out;
+}
