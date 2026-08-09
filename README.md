@@ -12,7 +12,9 @@
 
 **An autonomous, self-driven AI content creator engine featuring dynamic background orchestration, semantic vector deduplication over 48h windows, two-stage editorial LLM gatekeeping, and an immersive 3D WebGL particle interface powered by React Three Fiber and Supabase Realtime CDC.**
 
-[Architecture](#-system-architecture) • [Features](#-key-features) • [Data Pipeline](#-autonomous-data-pipeline) • [Tech Stack](#%EF%B8%8F-technology-stack) • [Getting Started](#-getting-started) • [API Specification](#-api-specifications) • [Database Schema](#-database-schema--vector-store)
+### 🌐 **Live Demo:** [https://vhackathon.vercel.app/](https://vhackathon.vercel.app/)
+
+[🚀 Live Demo](https://vhackathon.vercel.app/) • [Architecture](#-system-architecture) • [Features](#-key-features) • [Data Pipeline](#-autonomous-data-pipeline) • [Tech Stack](#%EF%B8%8F-technology-stack) • [Getting Started](#-getting-started) • [API Specification](#-api-specifications) • [Database Schema](#-database-schema--vector-store)
 
 </div>
 
@@ -301,7 +303,7 @@ In a separate terminal, launch the FastAPI server:
 uvicorn api.index:app --reload --port 8000
 ```
 
-Access the WebGL Dashboard in your browser.
+Access the WebGL Dashboard live at [https://vhackathon.vercel.app/](https://vhackathon.vercel.app/) or in your local browser.
 
 ---
 
