@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { GET as getFeedHandler } from '@/app/api/agent/feed/route';
+import { POST as postInitHandler } from '@/app/api/agent/init/route';
+import { POST as postTickHandler } from '@/app/api/worker/tick/route';
+import { GET as getAgentHandler } from '@/app/api/agent/route';
 
 export async function GET(
   request: NextRequest,
@@ -24,18 +28,15 @@ export async function GET(
     // 127.0.0.1:8000 offline or Vercel serverless environment
   }
 
-  // Fallback to native Vercel serverless route
-  const origin = request.nextUrl.origin;
-  const vercelUrl = `${origin}/api/${path}${searchParams ? `?${searchParams}` : ''}`;
-  try {
-    const res = await fetch(vercelUrl, {
-      headers: { 'Content-Type': 'application/json' },
-    });
-    const data = await res.json();
-    return NextResponse.json(data, { status: res.status });
-  } catch (e) {
-    return NextResponse.json({ posts: [] }, { status: 200 });
+  // Direct Vercel serverless function routing
+  if (path === 'agent/feed') {
+    return getFeedHandler(request);
   }
+  if (path === 'agent') {
+    return getAgentHandler(request);
+  }
+
+  return NextResponse.json({ posts: [] }, { status: 200 });
 }
 
 export async function POST(
@@ -74,19 +75,15 @@ export async function POST(
     // 127.0.0.1:8000 offline or Vercel serverless environment
   }
 
-  // Fallback to native Vercel serverless route
-  const origin = request.nextUrl.origin;
-  const vercelUrl = `${origin}/api/${path}${searchParams ? `?${searchParams}` : ''}`;
-  try {
-    const res = await fetch(vercelUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: bodyStr || undefined,
-    });
-    const data = await res.json();
-    return NextResponse.json(data, { status: res.status });
-  } catch (e) {
-    return NextResponse.json({ status: 'SUCCESS' }, { status: 200 });
+  // Direct Vercel serverless function routing
+  if (path === 'agent/init') {
+    return postInitHandler(request);
   }
+  if (path === 'worker/tick') {
+    return postTickHandler(request);
+  }
+
+  return NextResponse.json({ status: 'SUCCESS' }, { status: 200 });
 }
+
 
