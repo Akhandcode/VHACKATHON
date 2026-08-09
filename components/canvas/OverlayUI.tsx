@@ -44,7 +44,7 @@ export const OverlayUI: React.FC = () => {
           </div>
           <Link href="/">
             <h1 className="font-display font-black text-2xl tracking-tighter uppercase text-swiss-black hover:text-y2k-magenta transition-colors">
-              AUTONOMOUS AI // CREATOR
+              IMAGINATION // AUTONOMOUS ENGINE
             </h1>
           </Link>
           <RealtimeStatusBadge />

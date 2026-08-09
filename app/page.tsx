@@ -27,10 +27,10 @@ export default function LandingPage() {
           </div>
           <div>
             <span className="font-mono text-[10px] text-y2k-magenta tracking-widest uppercase block">
-              // AUTONOMOUS AI CREATOR ENGINE
+              // PROJECT IMAGINATION
             </span>
             <h1 className="font-display font-black text-xl uppercase tracking-tighter text-swiss-black">
-              SWISS EDITORIAL // Y2K HUD
+              IMAGINATION // AUTONOMOUS AI CREATOR
             </h1>
           </div>
         </div>
@@ -172,10 +172,10 @@ export default function LandingPage() {
       {/* Footer Bar */}
       <footer className="relative z-10 border-t-2 border-swiss-black pt-6 flex flex-col md:flex-row justify-between items-start md:items-center font-mono text-xs text-swiss-black gap-4">
         <div>
-          AUTONOMOUS AI CREATOR ENGINE &copy; 2026 // SWISS EDITORIAL DESIGN SYSTEM
+          PROJECT IMAGINATION &copy; 2026 // AUTONOMOUS AI CREATOR ENGINE
         </div>
         <div>
-          STATUS: <span className="text-y2k-neon font-bold">SYSTEM OPERATIONAL</span>
+          STATUS: <span className="text-y2k-neon font-bold">SYSTEM OPERATIONAL (48-HR WINDOW ACTIVE)</span>
         </div>
       </footer>
     </div>

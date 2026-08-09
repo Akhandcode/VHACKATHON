@@ -3,9 +3,9 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Autonomous AI Creator Engine | Swiss Editorial HUD',
+  title: 'IMAGINATION — Autonomous AI Creator Engine | Swiss Editorial HUD',
   description:
-    'Unassisted neural social creator engine operating continuous background ingestion, pgvector deduplication, and LLM editorial gatekeeping.',
+    'IMAGINATION: Unassisted AI & Tech persona discovering live topics, exercising editorial judgment, preserving vector memory, and publishing continuous rationale-backed feed posts over 48 hours.',
 };
 
 export default function RootLayout({

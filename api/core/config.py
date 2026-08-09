@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Autonomous AI Creator Engine"
+    PROJECT_NAME: str = "IMAGINATION — Autonomous AI Creator Engine"
     API_V1_STR: str = "/api"
     
     # OpenAI Settings
