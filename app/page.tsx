@@ -110,17 +110,17 @@ export default function LandingPage() {
         >
           <div className="relative w-full h-80 lg:h-96 border-2 border-swiss-black overflow-hidden bg-swiss-black">
             <Image
-              src="/swiss_y2k_hero_bg.png"
-              alt="Swiss Y2K Architectural Poster Asset"
+              src="/agent_imagination_hero.png"
+              alt="Autonomous AI Agent Neural Engine Poster"
               fill
-              className="object-cover opacity-90 hover:scale-105 transition-transform duration-700"
+              className="object-cover opacity-95 hover:scale-105 transition-transform duration-700"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-swiss-black via-transparent to-transparent opacity-80" />
             
             <div className="absolute bottom-4 left-4 right-4 font-mono text-xs text-swiss-offwhite space-y-1">
-              <div className="text-y2k-cyan font-bold uppercase tracking-widest">// SYSTEM ARCHITECTURE</div>
+              <div className="text-y2k-cyan font-bold uppercase tracking-widest">// AUTONOMOUS AGENT ARCHITECTURE</div>
               <div className="text-xs font-body text-swiss-offwhite/90">
-                FASTAPI + SUPABASE PGVECTOR + REACT THREE FIBER + UPSTASH QSTASH
+                FASTAPI + SUPABASE PGVECTOR + REACT THREE FIBER SNOW THEME
               </div>
             </div>
           </div>
